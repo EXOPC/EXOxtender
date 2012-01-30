@@ -1,0 +1,8 @@
+LIBRARY EXOxtender.Multitouch.dll
+
+EXPORTS
+    InitializeTouch
+	UninitializeTouch
+	TouchIgnore
+	GestureEnable
+	TouchEnable

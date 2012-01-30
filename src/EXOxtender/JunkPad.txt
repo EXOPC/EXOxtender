@@ -1,0 +1,240 @@
+﻿ Scratch pad for unused bits of code....
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+            ////Get control as Form.
+            //_currentActiveForm = Control.FromHandle(_currentActiveFormHandle) as Form;
+            //_currentActiveFormHandle.WndProc = otherFormWndProc();
+
+
+
+           //private readonly TouchHandler _touchHandler;
+        //private readonly ManipulationProcessor _processor;
+   
+   
+    //[DllImport("user32")]
+        //[return: MarshalAs(UnmanagedType.Bool)]
+        //public static extern bool RegisterTouchWindow(IntPtr hWnd, uint ulFlags);
+
+        public delegate int HookProc(int nCode, IntPtr wParam, IntPtr lParam);
+
+        //Declare the hook handle as an int.
+        static int hHook = 0;
+
+        //Declare the mouse hook constant.
+        //For other hook types, you can obtain these values from Winuser.h in the Microsoft SDK.
+        public const int WH_MOUSE = 7;
+        public const int WH_CALLWNDPROC = 4;
+        public const int WH_MOUSE_LL = 14;
+        //private System.Windows.Forms.Button button1;
+
+        //Declare MouseHookProcedure as a HookProc type.
+        HookProc MouseHookProcedure;
+
+        //Declare the wrapper managed POINT class.
+        [StructLayout(LayoutKind.Sequential)]
+        public class POINT
+        {
+            public int x;
+            public int y;
+        }
+
+        //Declare the wrapper managed MouseHookStruct class.
+        [StructLayout(LayoutKind.Sequential)]
+        public class MouseHookStruct
+        {
+            public POINT pt;
+            public int hwnd;
+            public int wHitTestCode;
+            public int dwExtraInfo;
+        }
+
+        //This is the Import for the SetWindowsHookEx function.
+        //Use this function to install a thread-specific hook.
+        [DllImport("user32.dll", CharSet = CharSet.Auto,
+         CallingConvention = CallingConvention.StdCall)]
+        public static extern int SetWindowsHookEx(int idHook, HookProc lpfn,
+        IntPtr hInstance, int threadId);
+
+        //This is the Import for the UnhookWindowsHookEx function.
+        //Call this function to uninstall the hook.
+        [DllImport("user32.dll", CharSet = CharSet.Auto,
+         CallingConvention = CallingConvention.StdCall)]
+        public static extern bool UnhookWindowsHookEx(int idHook);
+
+        //This is the Import for the CallNextHookEx function.
+        //Use this function to pass the hook information to the next hook procedure in chain.
+        [DllImport("user32.dll", CharSet = CharSet.Auto,
+         CallingConvention = CallingConvention.StdCall)]
+        public static extern int CallNextHookEx(int idHook, int nCode,
+        IntPtr wParam, IntPtr lParam);
+
+
+
+
+
+
+        //// Creates a  message filter.
+        //[SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
+        //public class TestMessageFilter : IMessageFilter
+        //{
+        //    public bool PreFilterMessage(ref Message m)
+        //    {
+        //        // Blocks all the messages relating to the left mouse button.
+        //        if (m.Msg >= 513 && m.Msg <= 515)
+        //        {
+        //            Console.WriteLine("Processing the messages : " + m.Msg);
+        //            return true;
+        //        }
+        //        return false;
+        //    }
+        //}
+
+
+
+
+
+
+
+
+		            //_touchHandler = Factory.CreateHandler<TouchHandler>(this);
+
+            ////_touchHandler.TouchDown += (s, e) => { _processor.ProcessDown((uint)e.Id, e.Location); };
+            ////_touchHandler.TouchUp += (s, e) => { _processor.ProcessUp((uint)e.Id, e.Location); };
+            ////_touchHandler.TouchMove += (s, e) => { _processor.ProcessMove((uint)e.Id, e.Location); };
+
+            //_touchHandler.TouchDown += OnTouchDownHandler;
+            //_touchHandler.TouchMove += OnTouchMoveHandler;
+            //_touchHandler.TouchUp += OnTouchUpHandler;
+
+            //textBox1.Text = " - Maximum Inputs: " + Windows7.Multitouch.TouchHandler.DigitizerCapabilities.MaxumumTouches;
+
+
+
+
+			
+        // Touch down event handler.
+        private void OnTouchDownHandler(object sender, Windows7.Multitouch.TouchEventArgs e)
+        {
+            textBox1.Text = "TouchDown [" + e.Location.X + "," + e.Location.Y + "]\r\n" + textBox1.Text;
+
+            int _exoUI = MessageHelper.FindWindow(null, "EXO UI");
+            MessageHelper.PostMessage(_exoUI, 32773, MessageHelper.MakeWParam(147, e.Id), MessageHelper.MakeLParam(e.Location.X, e.Location.Y));
+        }
+
+        // Touch up event handler.
+        private void OnTouchUpHandler(object sender, Windows7.Multitouch.TouchEventArgs e)
+        {
+            textBox1.Text = "TouchUp [" + e.Location.X + "," + e.Location.Y + "]\r\n" + textBox1.Text;
+
+            int _exoUI = MessageHelper.FindWindow(null, "EXO UI");
+            MessageHelper.PostMessage(_exoUI, 32773, MessageHelper.MakeWParam(147, e.Id), MessageHelper.MakeLParam(e.Location.X, e.Location.Y));
+        }
+
+        // Touch move event handler.
+        private void OnTouchMoveHandler(object sender, Windows7.Multitouch.TouchEventArgs e)
+        {
+            textBox1.Text = "TouchMove [" + e.Location.X + "," + e.Location.Y + "]\r\n" + textBox1.Text;
+
+            int _exoUI = MessageHelper.FindWindow(null, "EXO UI");
+            MessageHelper.PostMessage(_exoUI, 32773, MessageHelper.MakeWParam(147, e.Id), MessageHelper.MakeLParam(e.Location.X, e.Location.Y));
+        }
+
+        private void OnLoadHandler(Object sender, EventArgs e)
+        {
+            //try
+            //{
+            //    // Registering the window for multi-touch, using the default settings.
+            //    // p/invoking into user32.dll
+            //    if (!RegisterTouchWindow(this.Handle, 0))
+            //    {
+            //        Debug.Print("ERROR: Could not register window for multi-touch");
+            //    }
+            //}
+            //catch (Exception exception)
+            //{
+            //    Debug.Print("ERROR: RegisterTouchWindow API not available");
+            //    Debug.Print(exception.ToString());
+            //    MessageBox.Show("RegisterTouchWindow API not available", "MTScratchpadWMTouch ERROR",
+            //        MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, 0);
+            //}
+        }
+
+
+
+
+
+
+
+		     private void button1_Click_1(object sender, EventArgs e)
+        {
+            if (hHook == 0)
+            {
+                // Create an instance of HookProc.
+                MouseHookProcedure = new HookProc(EXOxtenderApp.MouseHookProc);
+
+                hHook = SetWindowsHookEx(WH_MOUSE,
+                            MouseHookProcedure,
+                            (IntPtr)0,
+                            AppDomain.GetCurrentThreadId());
+                //If the SetWindowsHookEx function fails.
+                if (hHook == 0)
+                {
+                    MessageBox.Show("SetWindowsHookEx Failed");
+                    return;
+                }
+                button1.Text = "UnHook Windows Hook";
+            }
+            else
+            {
+                bool ret = UnhookWindowsHookEx(hHook);
+                //If the UnhookWindowsHookEx function fails.
+                if (ret == false)
+                {
+                    MessageBox.Show("UnhookWindowsHookEx Failed");
+                    return;
+                }
+                hHook = 0;
+                button1.Text = "Set Windows Hook";
+                this.Text = "Mouse Hook";
+            }
+        }
+
+        public static int MouseHookProc(int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            //Marshall the data from the callback.
+            MouseHookStruct MyMouseHookStruct = (MouseHookStruct)Marshal.PtrToStructure(lParam, typeof(MouseHookStruct));
+
+            if (nCode < 0)
+            {
+                return CallNextHookEx(hHook, nCode, wParam, lParam);
+            }
+            else
+            {
+                //Create a string variable that shows the current mouse coordinates.
+                String strCaption = "x = " +
+                        MyMouseHookStruct.pt.x.ToString("d") +
+                            "  y = " +
+                MyMouseHookStruct.pt.y.ToString("d");
+                //You must get the active form because it is a static function.
+                Form tempForm = Form.ActiveForm;
+
+                //Set the caption of the form.
+                TextBox _txt;
+                Control _ctl;
+                _ctl = tempForm.Controls.Find("textBox1", true)[0];
+                _txt = (TextBox)_ctl;
+                _txt.Text = strCaption;
+                return CallNextHookEx(hHook, nCode, wParam, lParam);
+            }
+        }
