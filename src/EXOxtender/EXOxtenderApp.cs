@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Windows.Forms;
 using System.Threading;
@@ -41,6 +42,10 @@ namespace EXOxtender
         [DllImport("user32.dll")]
         private static extern IntPtr GetForegroundWindow();
 
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool GetCursorPos(out Point lpPoint);
+
         public const int WM_TOUCH = 0x0240;
 
         public const int EX_READY = 2000;
@@ -51,6 +56,7 @@ namespace EXOxtender
         private bool disposed = false;
         public IntPtr _exoUI;
         private string _windowName;
+        private string _tempPath;
         StateObjClass _stateObj;
         private bool _showWindow = false;
 
@@ -85,14 +91,20 @@ namespace EXOxtender
         private Thread udpThread;
         UdpClient udpClient = null;
 
-        public EXOxtenderApp(ApplicationContext ctx, string windowName, string showWindow)
+        TransparentLayer transparentLayer = null;
+
+        public EXOxtenderApp(ApplicationContext ctx, string windowName, string tempPath, string showWindow)
         {
             _ctx = ctx;
             _windowName = windowName;
+            _tempPath = tempPath;
+            if (_tempPath.Length > 0 && _tempPath[_tempPath.Length - 1] != '\\')
+                _tempPath += '\\';
             InitializeComponent();
 
             job = new ThreadStart(wifiThread);
             thread = new Thread(job);
+            thread.SetApartmentState(ApartmentState.STA);
             thread.Start();
 
             if (!string.IsNullOrEmpty(showWindow) && showWindow == "/ShowWindow")
@@ -125,11 +137,23 @@ namespace EXOxtender
                 writer.WriteLine("EXOxtender started");
             }
             */
-            
+
             if (_showWindow)
             {
                 this.Show();
             }
+            else
+            {
+                // this is required for the transparent layer to work (?)
+                this.Opacity = 0.0f;
+                this.Show();
+                this.Hide();
+            }
+
+            XmlWriter outXml = XmlWriter.Create(_tempPath + "test.xml");
+            outXml.WriteStartElement("test");
+            outXml.WriteEndElement();
+            outXml.Close();
         }
 
         private void Form3_Load(object sender, EventArgs e)
@@ -142,7 +166,6 @@ namespace EXOxtender
             //{
             //    HideWindow();
             //}
-            
         }
 
         //protected override void SetVisibleCore(bool value)
@@ -520,7 +543,7 @@ namespace EXOxtender
                             {
                                 try
                                 {
-                                    XmlTextReader reader = new XmlTextReader(@"c:\windows\temp\udp_send.xml");
+                                    XmlTextReader reader = new XmlTextReader(_tempPath + "udp_send.xml");
                                     String ip = null;
                                     while (reader.Read())
                                     {
@@ -550,6 +573,15 @@ namespace EXOxtender
                                     // ignore errors while sending UDP, anyway UDP is not reliable
                                 }
                             }
+                            break;
+                        case EXOMsg.EX_HARDWARE_REPORT_GET:
+                            hardwareReportGet();
+                            break;
+                        case EXOMsg.EX_TRANSP_LAYER_OPEN:
+                            exTranspLayerOpen();
+                            break;
+                        case EXOMsg.EX_TRANSP_LAYER_CLOSE:
+                            exTranspLayerClose();
                             break;
                     }
                 }
@@ -645,7 +677,7 @@ namespace EXOxtender
                     for (; ; )
                     {
                         byte[] message = udpClient.Receive(ref ipEndPoint);
-                        FileStream udpFile = new FileStream(@"c:\windows\temp\udp_received_" + index + ".xml", FileMode.Create);
+                        FileStream udpFile = new FileStream(_tempPath + "udp_received_" + index + ".xml", FileMode.Create);
                         udpFile.Write(message, 0, message.Length);
                         udpFile.Close();
                         MessageHelper.PostMessage(_exoUI, EXOMsg.WM_APP + 5, MessageHelper.MakeWParam(EXOMsg.EX_UDP_EVENT_RECEIVED, index), MessageHelper.MakeLParam(0, 0));
@@ -982,6 +1014,74 @@ namespace EXOxtender
         private void btnShutdown_Click(object sender, EventArgs e)
         {
             MessageHelper.PostMessage(this.Handle, EXOMsg.WM_APP + 5, MessageHelper.MakeWParam(EXOMsg.EX_SHUTDOWN, 0), 0);
+        }
+
+        private void hardwareReportGet()
+        {
+            XmlWriter outXml = XmlWriter.Create(_tempPath + "hardware_report.xml");
+            outXml.WriteStartElement("EXOxtender");
+
+            // list mac addresses
+            IPGlobalProperties ipGlobalProperties = IPGlobalProperties.GetIPGlobalProperties();
+            NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
+            if (nics != null)
+            {
+                foreach (NetworkInterface adapter in nics)
+                {
+                    if (adapter.NetworkInterfaceType != NetworkInterfaceType.Tunnel)
+                    {
+                        IPInterfaceProperties properties = adapter.GetIPProperties();
+                        PhysicalAddress address = adapter.GetPhysicalAddress();
+                        byte[] bytes = address.GetAddressBytes();
+                        if (bytes != null && bytes.Length > 0)
+                        {
+                            string addr = "";
+                            for (int i = 0; i < bytes.Length; i++)
+                            {
+                                // Display the physical address in hexadecimal.
+                                addr += string.Format("{0}", bytes[i].ToString("X2"));
+                            }
+                            outXml.WriteElementString("macAddr", addr);
+                        }
+                    }
+                }
+            }
+
+            outXml.WriteEndElement();
+            outXml.Close();
+            MessageHelper.PostMessage(_exoUI, EXOMsg.WM_APP + 5, MessageHelper.MakeWParam(EXOMsg.EX_HARDWARE_REPORT_READY, 0), 0);
+        }
+
+        private void exTranspLayerOpen()
+        {
+            if (transparentLayer != null)
+                return;
+
+            try
+            {
+                //Invoke((MethodInvoker)delegate { transparentLayer = new TransparentLayer(); });
+                Point point;
+                GetCursorPos(out point);
+                transparentLayer = new TransparentLayer(_exoUI, _tempPath, point);
+            }
+            catch (Exception ex)
+            {
+                /*
+                using (StreamWriter writer = new StreamWriter(@"\patrice\patrice2.txt", true))
+                {
+                    writer.WriteLine("Exception in exTranspLayer: " + ex.Message);
+                    writer.WriteLine("Exception in exTranspLayer: " + ex.StackTrace);
+                }
+                */
+            }
+        }
+
+        private void exTranspLayerClose()
+        {
+            if (transparentLayer == null)
+                return;
+            transparentLayer.Close();
+            transparentLayer = null;
         }
 
     }

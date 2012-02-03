@@ -133,6 +133,12 @@
     <Compile Include="SimpleAudioVolume.cs" />
     <Compile Include="TouchHandler.cs" />
     <Compile Include="TouchMsgProcessor.cs" />
+    <Compile Include="TransparentLayer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TransparentLayer.Designer.cs">
+      <DependentUpon>TransparentLayer.cs</DependentUpon>
+    </Compile>
     <Compile Include="TransparentWindow\TransparentWindow.cs">
       <SubType>Form</SubType>
     </Compile>

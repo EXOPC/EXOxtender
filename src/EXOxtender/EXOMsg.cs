@@ -12,15 +12,22 @@ namespace EXOxtender
 
         //Decimal constants
         internal const int EX_TOUCH_SET = 1100;
-        internal const int EX_TOUCH_EVENT_START = 2075;
-        internal const int EX_TOUCH_EVENT_END  = 2076;
-        internal const int EX_TOUCH_EVENT_MOVE = 2077;
         internal const int EX_TOUCH_AREA_POS = 1102;
         internal const int EX_TOUCH_AREA_SIZE = 1103;
         internal const int EX_GESTURE_ENABLE = 1104;
         internal const int EX_TOUCH_ENABLE = 1105;
         internal const int EX_TOUCH_IGNORE = 1106;
+        internal const int EX_HARDWARE_REPORT_GET = 1140;
+        internal const int EX_TRANSP_LAYER_OPEN = 1150;
+        internal const int EX_TRANSP_LAYER_CLOSE = 1151;
+        internal const int EX_DRAG_LISTENING_STOP = 1152;
+        internal const int EX_DRAGGED_FILES_GET = 1153;
         internal const int EX_SHUTDOWN = 1999;
+        internal const int EX_TOUCH_EVENT_START = 2075;
+        internal const int EX_TOUCH_EVENT_END = 2076;
+        internal const int EX_TOUCH_EVENT_MOVE = 2077;
+        internal const int EX_HARDWARE_REPORT_READY = 2140;
+        internal const int EX_DRAGGED_FILES_READY = 2150;
 
         //Sound
         internal const int EX_SND_SET = 1001;
