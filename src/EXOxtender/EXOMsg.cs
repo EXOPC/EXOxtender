@@ -18,10 +18,12 @@ namespace EXOxtender
         internal const int EX_TOUCH_ENABLE = 1105;
         internal const int EX_TOUCH_IGNORE = 1106;
         internal const int EX_HARDWARE_REPORT_GET = 1140;
-        internal const int EX_TRANSP_LAYER_OPEN = 1150;
+        internal const int EX_TRANSP_LAYER_OPEN_XY = 1150;
         internal const int EX_TRANSP_LAYER_CLOSE = 1151;
         internal const int EX_DRAG_LISTENING_STOP = 1152;
         internal const int EX_DRAGGED_FILES_GET = 1153;
+        internal const int EX_TRANSP_LAYER_OPEN_WH = 1154;
+        internal const int EX_DRAG_FEEDBACK = 1155;
         internal const int EX_SHUTDOWN = 1999;
         internal const int EX_TOUCH_EVENT_START = 2075;
         internal const int EX_TOUCH_EVENT_END = 2076;

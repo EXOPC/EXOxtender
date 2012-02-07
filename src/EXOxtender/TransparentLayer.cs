@@ -22,8 +22,9 @@ namespace EXOxtender
         private string[] draggedFiles = null;
         private IntPtr _exoUI;
         private string _tempPath;
+        private DragDropEffects dragFeedback = DragDropEffects.Copy;
 
-        public TransparentLayer(IntPtr exoUI, string tempPath, Point point)
+        public TransparentLayer(IntPtr exoUI, string tempPath, int x, int y, int w, int h)
         {
             InitializeComponent();
             _exoUI = exoUI;
@@ -32,10 +33,12 @@ namespace EXOxtender
             TopMost = true;
             Opacity = 0.01f;
             Visible = true;
+            FormBorderStyle = FormBorderStyle.None;
+            this.ShowInTaskbar = false;
             Show();
-            this.Size = new Size(100, 100);
-            this.Left = point.X > 50 ? point.X - 50 : 0;
-            this.Top = point.Y > 50 ? point.Y - 50 : 0;
+            this.Size = new Size(w, h);
+            this.Left = x;
+            this.Top = y;
             BringToFront();
         }
 
@@ -47,6 +50,7 @@ namespace EXOxtender
             {
                 AllowDrop = true;
                 DragEnter += new DragEventHandler(dragEnter);
+                DragOver += new DragEventHandler(dragOver);
             }
             catch (Exception ex)
             {
@@ -60,8 +64,10 @@ namespace EXOxtender
             }
         }
 
-        void dragEnter(object sender, DragEventArgs e)
+        private void dragEnter(object sender, DragEventArgs e)
         {
+            e.Effect = dragFeedback;
+
             // Check if the Dataformat of the data can be accepted
             // (we only accept file drops from Explorer, etc.)
             if (!isDragListening)
@@ -69,21 +75,15 @@ namespace EXOxtender
 
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
-                e.Effect = DragDropEffects.Copy; // Okay
-
                 // take note of the file name
                 // Extract the data from the DataObject-Container into a string list
                 draggedFiles = (string[])e.Data.GetData(DataFormats.FileDrop, false);
                 saveFilenamesToXml();
-                dragListeningStop();
-            }
-            else
-            {
-                e.Effect = DragDropEffects.None; // Unknown data, ignore it
+                isDragListening = false;
             }
         }
 
-        public void saveFilenamesToXml()
+        private void saveFilenamesToXml()
         {
             XmlWriterSettings xmlSettings = new XmlWriterSettings();
             xmlSettings.Encoding = Encoding.ASCII;
@@ -105,9 +105,21 @@ namespace EXOxtender
             MessageHelper.PostMessage(_exoUI, EXOMsg.WM_APP + 5, MessageHelper.MakeWParam(EXOMsg.EX_DRAGGED_FILES_READY, 0), 0);
         }
 
-        public void dragListeningStop()
+        private void dragOver(object sender, DragEventArgs e)
         {
-            isDragListening = false;
+            e.Effect = dragFeedback;
+            BringToFront();
+        }
+
+        public void setFeedback(int feedbackCode)
+        {
+            dragFeedback =
+                feedbackCode == 1 ? DragDropEffects.Copy :
+                feedbackCode == 2 ? DragDropEffects.Move :
+                feedbackCode == 4 ? DragDropEffects.Link :
+                feedbackCode == 8 ? DragDropEffects.Scroll :
+                feedbackCode == 11 ? DragDropEffects.All :
+                DragDropEffects.None;
         }
     }
 

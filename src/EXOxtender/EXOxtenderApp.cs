@@ -92,6 +92,7 @@ namespace EXOxtender
         UdpClient udpClient = null;
 
         TransparentLayer transparentLayer = null;
+        int transparentLayerX, transparentLayerY;
 
         public EXOxtenderApp(ApplicationContext ctx, string windowName, string tempPath, string showWindow)
         {
@@ -149,11 +150,6 @@ namespace EXOxtender
                 this.Show();
                 this.Hide();
             }
-
-            XmlWriter outXml = XmlWriter.Create(_tempPath + "test.xml");
-            outXml.WriteStartElement("test");
-            outXml.WriteEndElement();
-            outXml.Close();
         }
 
         private void Form3_Load(object sender, EventArgs e)
@@ -577,8 +573,15 @@ namespace EXOxtender
                         case EXOMsg.EX_HARDWARE_REPORT_GET:
                             hardwareReportGet();
                             break;
-                        case EXOMsg.EX_TRANSP_LAYER_OPEN:
-                            exTranspLayerOpen();
+                        case EXOMsg.EX_TRANSP_LAYER_OPEN_XY:
+                            transparentLayerX = _arg1;
+                            transparentLayerY = _arg2;
+                            break;
+                        case EXOMsg.EX_TRANSP_LAYER_OPEN_WH:
+                            exTranspLayerOpen(transparentLayerX, transparentLayerY, _arg1, _arg2);
+                            break;
+                        case EXOMsg.EX_DRAG_FEEDBACK:
+                            exDragFeedback(_arg1);
                             break;
                         case EXOMsg.EX_TRANSP_LAYER_CLOSE:
                             exTranspLayerClose();
@@ -1052,17 +1055,14 @@ namespace EXOxtender
             MessageHelper.PostMessage(_exoUI, EXOMsg.WM_APP + 5, MessageHelper.MakeWParam(EXOMsg.EX_HARDWARE_REPORT_READY, 0), 0);
         }
 
-        private void exTranspLayerOpen()
+        private void exTranspLayerOpen(int x, int y, int w, int h)
         {
             if (transparentLayer != null)
                 return;
 
             try
             {
-                //Invoke((MethodInvoker)delegate { transparentLayer = new TransparentLayer(); });
-                Point point;
-                GetCursorPos(out point);
-                transparentLayer = new TransparentLayer(_exoUI, _tempPath, point);
+                transparentLayer = new TransparentLayer(_exoUI, _tempPath, x, y, w, h);
             }
             catch (Exception ex)
             {
@@ -1084,6 +1084,12 @@ namespace EXOxtender
             transparentLayer = null;
         }
 
+        private void exDragFeedback(int feedbackCode)
+        {
+            if (transparentLayer == null)
+                return;
+            transparentLayer.setFeedback(feedbackCode);
+        }
     }
 
 }
